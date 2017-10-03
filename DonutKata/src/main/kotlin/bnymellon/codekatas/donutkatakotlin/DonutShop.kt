@@ -65,7 +65,7 @@ class DonutShop
 
     private fun fillOrder(order: Order): Delivery
     {
-        order.getCounts().forEachWithOccurrences(this::makeMissingDonuts)
+//        order.getCounts().forEachWithOccurrences(this::makeMissingDonuts)
         val price = this.calculatePricePerDonut(order.getCounts().size())
         val delivery = this.createDelivery(order, price)
         order.getCounts()
@@ -120,36 +120,37 @@ class DonutShop
 
     fun getTopDonuts(n: Int): MutableList<ObjectIntPair<DonutType>>?
     {
-        // TODO - Write the code necessary to calcuate the top n donuts
+        // TODO - Write the code necessary to calculate the top n donuts
         // Hint: Look at the domain and use deliveries which have collections of ordered donuts
         // Hint: You will need to flatten the donuts and collect their donut types
         // Hint: Bag has a method named topOccurrences(n)
-        return null
+        val countByType = this.deliveries.flatCollect { each -> each.donuts }.countBy { donut -> donut.type }
+        return countByType.topOccurrences(n)
     }
 
     fun getTotalDeliveryValueFor(date: LocalDate): Double
-    {
-        // TODO - Write the code necessary to sum up the total delivery value for the specified date
-        // Hint: Look at sumOfDouble()
-        return 0.0
-    }
+            = this.deliveries.select { each -> each.deliveredOn(date) }.sumOfDouble { each -> each.totalPrice }
+    // TODO - Write the code necessary to sum up the total delivery value for the specified date
+    // Hint: Look at sumOfDouble()
 
     val topCustomer: Customer?
-        get() = null
+        get() = this.customers.maxBy { each -> each.totalDonutsOrdered }
         // TODO - Write the code necessary to find the max Customer by total donuts ordered
         // Hint: There is a method maxBy on all RichIterables
 
     val customersByDonutTypesOrdered: Multimap<DonutType, Customer>?
-        get() = null
+        get() = this.customers.groupByEach { each -> each.donutTypesOrdered }
         // TODO - Group all of the Customers by the Donut Types they order
         // Hint: There is a method groupByEach which takes a function which returns Iterable
 
 
     fun getDonutPriceStatistics(fromDate: LocalDate, toDate: LocalDate): DoubleSummaryStatistics?
     {
+        return this.deliveries.select { delivery -> (delivery.date.isAfter(fromDate) && delivery.date.isBefore(toDate))
+                || delivery.date.equals(fromDate) || delivery.date.equals(toDate)}
+                .flatCollect { delivery -> delivery.donuts }.summarizeDouble { donut -> donut.price }
         // TODO - Calculate the DoubleSummaryStatistics for the deliveries inclusive of the specified date range.
         // Hint: Look at select(), flatCollect() and summarizeDouble()
-        return null
     }
 
     override fun toString(): String
